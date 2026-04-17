@@ -434,6 +434,11 @@ public enum MinecraftVersion {
         }
 
         private static String matchVersion(String version) {
+
+            if (version.endsWith(".build")) { // Paper experimental versions
+                version = version.substring(0, version.length() - ".build".length());
+            }
+
             switch (version) {
                 case "1.21":
                 case "1.21.1":
