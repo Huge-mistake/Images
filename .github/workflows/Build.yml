@@ -20,7 +20,7 @@ jobs:
         run: chmod +x mvnw || true
 
       - name: Build jar
-        run: mvn clean package -DskipTests
+        run: mvn clean package
 
       - name: create JAR
         run: |
