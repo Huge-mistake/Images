@@ -435,6 +435,10 @@ public enum MinecraftVersion {
 
         private static String matchVersion(String version) {
 
+			if (version.contains(".build.")) {
+				version = version.split("\\.build\\.")[0];
+			}
+
             if (version.endsWith(".build")) { // Paper experimental versions
                 version = version.substring(0, version.length() - ".build".length());
             }
