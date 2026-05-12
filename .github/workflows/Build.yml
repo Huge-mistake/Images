@@ -1,34 +1,44 @@
-name: ImagesJAR
+name: BuildTest
+
 on:
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - name: check
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: JDK 25
+      - name: Set up JDK 25
         uses: actions/setup-java@v4
         with:
           java-version: '25'
           distribution: 'temurin'
-          cache: maven
 
-      - name: mvn
-        run: chmod +x mvnw || true
+      - name: Cache Maven
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
 
-      - name: Build jar
-        run: mvn clean package
+      - name: Build with Maven
+        run: mvn clean package --batch-mode --errors --no-transfer-progress
 
-      - name: create JAR
+      - name: Get final jar name
+        id: jar
         run: |
-          mkdir -p output
-          find . -name "Images-*.jar" -not -path "*/target/*original*" | xargs cp -t output/ 2>/dev/null || true
+          NAME=$(mvn help:evaluate -Dexpression=project.build.finalName -q -DforceStdout)
+          echo "jar=$NAME.jar" >> $GITHUB_OUTPUT
+      - name: Get short SHA
+        id: sha
+        run: echo "sha=$(echo ${GITHUB_SHA} | cut -c1-7)" >> $GITHUB_OUTPUT
 
-      - name: build
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Images-Plugin
-          path: output/
+          name: Images-${{ steps.sha.outputs.sha }}
+          path: target/${{ steps.jar.outputs.jar }}
+          retention-days: 30
